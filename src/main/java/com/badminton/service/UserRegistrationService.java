@@ -56,14 +56,17 @@ public class UserRegistrationService {
                 : exception.getMessage();
             if (message != null) {
                 String lowerMessage = message.toLowerCase();
-                if (lowerMessage.contains("username")) {
-                    throw new DuplicateFieldException("username", "Username is already in use");
-                }
-                if (lowerMessage.contains("email")) {
-                    throw new DuplicateFieldException("email", "Email is already in use");
+                if (lowerMessage.contains("unique") || lowerMessage.contains("duplicate")) {
+                    if (lowerMessage.contains("username")) {
+                        throw new DuplicateFieldException("username", "Username is already in use");
+                    }
+                    if (lowerMessage.contains("email")) {
+                        throw new DuplicateFieldException("email", "Email is already in use");
+                    }
+                    throw new DuplicateFieldException("user", "Username or email is already in use");
                 }
             }
-            throw new DuplicateFieldException("user", "Username or email is already in use");
+            throw exception;
         }
     }
 }

@@ -117,6 +117,24 @@ class UserRegistrationServiceTest {
         assertEquals("username", exception.getField());
     }
 
+    @Test
+    void nonUniqueIntegrityErrorIsRethrown() {
+        RegistrationRequest request = request("user", "user@example.com");
+        when(userRepository.existsByUsername(request.getUsername())).thenReturn(false);
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(request.getPassword())).thenReturn("encoded");
+        DataIntegrityViolationException exception =
+            new DataIntegrityViolationException("null value in column \"display_name\" violates not-null constraint");
+        when(userRepository.save(any(User.class))).thenThrow(exception);
+
+        DataIntegrityViolationException thrown = assertThrows(
+            DataIntegrityViolationException.class,
+            () -> userRegistrationService.registerParticipant(request)
+        );
+
+        assertSame(exception, thrown);
+    }
+
     private RegistrationRequest request(String username, String email) {
         RegistrationRequest request = new RegistrationRequest();
         request.setUsername(username);
