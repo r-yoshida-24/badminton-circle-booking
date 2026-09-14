@@ -10,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -97,6 +98,23 @@ class UserRegistrationServiceTest {
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());
         assertNotEquals(request.getPassword(), captor.getValue().getPassword());
+    }
+
+    @Test
+    void saveConstraintViolationIsTranslatedToDuplicateFieldError() {
+        RegistrationRequest request = request("dup-user", "dup@example.com");
+        when(userRepository.existsByUsername(request.getUsername())).thenReturn(false);
+        when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(request.getPassword())).thenReturn("encoded");
+        when(userRepository.save(any(User.class)))
+            .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint users_username_key"));
+
+        DuplicateFieldException exception = assertThrows(
+            DuplicateFieldException.class,
+            () -> userRegistrationService.registerParticipant(request)
+        );
+
+        assertEquals("username", exception.getField());
     }
 
     private RegistrationRequest request(String username, String email) {

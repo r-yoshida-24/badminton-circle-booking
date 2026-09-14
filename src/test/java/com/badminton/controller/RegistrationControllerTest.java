@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -56,6 +57,7 @@ class RegistrationControllerTest {
             """;
 
         mockMvc.perform(post("/signup")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payload))
             .andExpect(status().isCreated())
@@ -65,6 +67,7 @@ class RegistrationControllerTest {
     @Test
     void adminCreationRequiresAuthentication() throws Exception {
         mockMvc.perform(post("/admin/users/new")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validPayload()))
             .andExpect(status().isFound());
@@ -74,6 +77,7 @@ class RegistrationControllerTest {
     @WithMockUser(roles = "PARTICIPANT")
     void adminCreationRequiresAdminRole() throws Exception {
         mockMvc.perform(post("/admin/users/new")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validPayload()))
             .andExpect(status().isForbidden());
@@ -90,10 +94,20 @@ class RegistrationControllerTest {
         when(userRegistrationService.registerAdmin(any(RegistrationRequest.class))).thenReturn(created);
 
         mockMvc.perform(post("/admin/users/new")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validPayload()))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.role").value("ADMIN"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void adminCreationRequiresCsrfToken() throws Exception {
+        mockMvc.perform(post("/admin/users/new")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validPayload()))
+            .andExpect(status().isForbidden());
     }
 
     private String validPayload() throws Exception {
