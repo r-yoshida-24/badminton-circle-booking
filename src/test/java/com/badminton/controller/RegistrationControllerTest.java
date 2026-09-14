@@ -14,9 +14,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.ArgumentCaptor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -63,11 +66,18 @@ class RegistrationControllerTest {
                 .content(payload))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.role").value("PARTICIPANT"));
+
+        ArgumentCaptor<RegistrationRequest> captor = ArgumentCaptor.forClass(RegistrationRequest.class);
+        verify(userRegistrationService).registerParticipant(captor.capture());
+        RegistrationRequest captured = captor.getValue();
+        assertEquals("participant", captured.getUsername());
+        assertEquals("participant@example.com", captured.getEmail());
+        assertEquals("Participant Name", captured.getDisplayName());
     }
 
     @Test
     void adminCreationRequiresAuthentication() throws Exception {
-        mockMvc.perform(post("/admin/users/new")
+        mockMvc.perform(post("/admin/admins")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validPayload()))
@@ -78,7 +88,7 @@ class RegistrationControllerTest {
     @Test
     @WithMockUser(roles = "PARTICIPANT")
     void adminCreationRequiresAdminRole() throws Exception {
-        mockMvc.perform(post("/admin/users/new")
+        mockMvc.perform(post("/admin/admins")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validPayload()))
@@ -95,7 +105,7 @@ class RegistrationControllerTest {
         created.setRole("ADMIN");
         when(userRegistrationService.registerAdmin(any(RegistrationRequest.class))).thenReturn(created);
 
-        mockMvc.perform(post("/admin/users/new")
+        mockMvc.perform(post("/admin/admins")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validPayload()))
@@ -106,7 +116,7 @@ class RegistrationControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void adminCreationRequiresCsrfToken() throws Exception {
-        mockMvc.perform(post("/admin/users/new")
+        mockMvc.perform(post("/admin/admins")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validPayload()))
             .andExpect(status().isForbidden());

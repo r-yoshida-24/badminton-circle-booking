@@ -36,7 +36,7 @@ public class RegistrationController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/admin/users/new")
+    @PostMapping("/admin/admins")
     public ResponseEntity<Map<String, Object>> createAdmin(@Valid @RequestBody RegistrationRequest request) {
         User user = userRegistrationService.registerAdmin(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
