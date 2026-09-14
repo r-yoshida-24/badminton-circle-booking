@@ -20,9 +20,8 @@ public class User {
     private String password;
     @Column(nullable = false, unique = true)
     private String email;
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    private String role;
     @Column(nullable = false)
     private String displayName;
     @Column(nullable = false)
