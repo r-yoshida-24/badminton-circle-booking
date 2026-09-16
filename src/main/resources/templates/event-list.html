@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>イベント一覧 | バドミントンサークル予約</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --secondary: #e0f2fe;
+      --border: #dfe7f2;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --shadow: rgba(15, 23, 42, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN",
+        "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 18px 40px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 1.7rem;
+    }
+
+    .header .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: #eff6ff;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .filter-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+      flex: 1;
+    }
+
+    .filter-item label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .filter-item select,
+    .filter-item input {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 12px;
+      background: white;
+      font-size: 0.95rem;
+    }
+
+    .event-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .event-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 6px 18px var(--shadow);
+      overflow: hidden;
+    }
+
+    .event-top {
+      padding: 16px 16px 10px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .event-date {
+      display: inline-block;
+      background: var(--secondary);
+      color: var(--primary);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+
+    .event-title {
+      margin: 0;
+      font-size: 1.12rem;
+      line-height: 1.4;
+    }
+
+    .event-body {
+      padding: 16px;
+    }
+
+    .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .status.open {
+      background: #dcfce7;
+      color: var(--success);
+    }
+
+    .status.waiting {
+      background: #fef3c7;
+      color: var(--warning);
+    }
+
+    .status.full {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .event-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .capacity {
+      font-size: 0.87rem;
+      color: var(--muted);
+    }
+
+    .btn-small {
+      padding: 9px 14px;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>イベント一覧</h1>
+      <div class="actions">
+        <a href="/dashboard" class="btn btn-outline">ダッシュボード</a>
+        <a href="/login" class="btn btn-primary">ログイン</a>
+      </div>
+    </header>
+
+    <section class="filters">
+      <div class="filter-item">
+        <label for="day">開催日</label>
+        <input type="date" id="day" value="2026-09-20" />
+      </div>
+
+      <div class="filter-item">
+        <label for="level">レベル</label>
+        <select id="level">
+          <option>すべて</option>
+          <option>初級</option>
+          <option selected>中級</option>
+          <option>上級</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="venue">会場</label>
+        <select id="venue">
+          <option>すべて</option>
+          <option selected>市民体育館A</option>
+          <option>北区スポーツセンター</option>
+          <option>南体育館</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="event-list">
+      <article class="event-card">
+        <div class="event-top">
+          <div class="event-date">2026/09/20</div>
+          <h2 class="event-title">初級〜中級 バドミントン練習会</h2>
+        </div>
+        <div class="event-body">
+          <div class="meta">
+            <div class="meta-row">🕒 19:00 - 21:00</div>
+            <div class="meta-row">📍 市民体育館A</div>
+            <div class="meta-row">👥 参加者: 8 / 12</div>
+          </div>
+          <div class="status open">募集中</div>
+          <div class="event-footer" style="margin-top: 18px;">
+            <div class="capacity">残席: 4</div>
+            <a href="/events/1" class="btn btn-primary btn-small">参加申込</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="event-card">
+        <div class="event-top">
+          <div class="event-date">2026/09/27</div>
+          <h2 class="event-title">中級者向けゲーム会</h2>
+        </div>
+        <div class="event-body">
+          <div class="meta">
+            <div class="meta-row">🕒 18:00 - 20:30</div>
+            <div class="meta-row">📍 北区スポーツセンター</div>
+            <div class="meta-row">👥 参加者: 10 / 10</div>
+          </div>
+          <div class="status waiting">キャンセル待ち</div>
+          <div class="event-footer" style="margin-top: 18px;">
+            <div class="capacity">待機枠: 2</div>
+            <a href="/events/2" class="btn btn-outline btn-small">詳細を見る</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="event-card">
+        <div class="event-top">
+          <div class="event-date">2026/10/04</div>
+          <h2 class="event-title">週末エントリー大会</h2>
+        </div>
+        <div class="event-body">
+          <div class="meta">
+            <div class="meta-row">🕒 10:00 - 12:00</div>
+            <div class="meta-row">📍 南体育館</div>
+            <div class="meta-row">👥 参加者: 14 / 14</div>
+          </div>
+          <div class="status full">満員</div>
+          <div class="event-footer" style="margin-top: 18px;">
+            <div class="capacity">募集終了</div>
+            <a href="/events/3" class="btn btn-outline btn-small">キャンセル待ち</a>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
