@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイページ</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="page">
+    <header class="topbar">
+        <div>
+            <h1>マイページ</h1>
+            <p>LINE連携済みの会員情報</p>
+        </div>
+        <nav class="topbar-nav">
+            <a th:href="@{/attendance}">出欠確認へ戻る</a>
+        </nav>
+    </header>
+    <section class="card">
+        <dl class="definition-list">
+            <div><dt>表示名</dt><dd th:text="${member.displayName}"></dd></div>
+            <div><dt>LINE user ID</dt><dd th:text="${member.lineUserId}"></dd></div>
+            <div><dt>権限</dt><dd th:text="${member.role}"></dd></div>
+            <div><dt>有効状態</dt><dd th:text="${member.enabled ? '有効' : '無効'}"></dd></div>
+        </dl>
+    </section>
+</div>
+</body>
+</html>

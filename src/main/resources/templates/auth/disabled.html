@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用停止中</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="page auth-page">
+    <div class="card">
+        <h1>現在ご利用いただけません</h1>
+        <p>この会員は無効化されています。</p>
+        <p>状況をご確認のうえ、管理者へお問い合わせください。</p>
+        <a class="button" th:href="@{/liff-login}">戻る</a>
+    </div>
+</div>
+</body>
+</html>
