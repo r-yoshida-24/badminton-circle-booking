@@ -7,10 +7,10 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -22,17 +22,12 @@ public class NimbusLineIdTokenVerifier implements LineIdTokenVerifier {
     public NimbusLineIdTokenVerifier(JwtDecoder jwtDecoder, LineProperties lineProperties) {
         this.jwtDecoder = jwtDecoder;
         OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(lineProperties.getIssuer());
-        OAuth2TokenValidator<Jwt> withAudience = jwt -> {
-            Object audience = jwt.getClaims().get(JwtClaimNames.AUD);
-            boolean matched = jwt.getAudience().stream().anyMatch(lineProperties.getChannelId()::equals);
-            if (matched) {
-                return OAuth2TokenValidatorResult.success();
-            }
-            return OAuth2TokenValidatorResult.failure(
-                    new OAuth2Error("invalid_token", "LINE IDトークンのaudienceが一致しません。", null)
-            );
-        };
-        if (jwtDecoder instanceof org.springframework.security.oauth2.jwt.NimbusJwtDecoder nimbusJwtDecoder) {
+        OAuth2TokenValidator<Jwt> withAudience = jwt -> jwt.getAudience().stream().anyMatch(lineProperties.getChannelId()::equals)
+                ? OAuth2TokenValidatorResult.success()
+                : OAuth2TokenValidatorResult.failure(
+                new OAuth2Error("invalid_token", "LINE IDトークンのaudienceが一致しません。", null)
+        );
+        if (jwtDecoder instanceof NimbusJwtDecoder nimbusJwtDecoder) {
             nimbusJwtDecoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(withIssuer, withAudience));
         }
     }

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参加者一覧</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="page">
+    <header class="topbar">
+        <div>
+            <h1>参加者一覧</h1>
+            <p th:text="${#temporals.format(event.eventDate, 'yyyy/MM/dd')} + ' ' + ${event.place}"></p>
+        </div>
+        <nav class="topbar-nav">
+            <a th:href="@{/admin/events}">イベント一覧へ戻る</a>
+        </nav>
+    </header>
+    <section class="card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>表示名</th>
+                <th>LINE user ID</th>
+                <th>出欠</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="participant : ${participants}">
+                <td th:text="${participant.displayName}"></td>
+                <td th:text="${participant.lineUserId}"></td>
+                <td th:text="${participant.status}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(participants)}">
+                <td colspan="3">まだ出欠登録はありません。</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+</body>
+</html>

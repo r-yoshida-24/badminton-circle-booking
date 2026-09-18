@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>LINEログイン | バドミントンサークル出欠管理</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+<div class="page auth-page">
+    <div class="card">
+        <h1>バドミントンサークル出欠管理</h1>
+        <p>LINE公式アカウントから開くと、そのまま出欠確認へ進めます。</p>
+        <p th:if="${param.logout}" class="message success">ログアウトしました。</p>
+        <div id="statusMessage" class="message">LINE認証を開始しています...</div>
+        <button id="retryButton" class="button secondary hidden" type="button">再試行</button>
+        <div th:if="${#strings.isEmpty(liffId)}" class="message error">
+            LIFF ID が未設定です。環境変数 LINE_LIFF_ID を設定してください。
+        </div>
+    </div>
+</div>
+<script th:inline="javascript">
+    const liffId = /*[[${liffId}]]*/ '';
+    const friendshipCheckEnabled = /*[[${friendshipCheckEnabled}]]*/ true;
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+    const statusMessage = document.getElementById('statusMessage');
+    const retryButton = document.getElementById('retryButton');
+
+    retryButton.addEventListener('click', () => window.location.reload());
+
+    const showError = (message) => {
+        statusMessage.textContent = message;
+        statusMessage.className = 'message error';
+        retryButton.classList.remove('hidden');
+    };
+
+    const authenticate = async () => {
+        if (!liffId) {
+            showError('LIFF ID が未設定です。管理者へお問い合わせください。');
+            return;
+        }
+        try {
+            await liff.init({ liffId });
+            if (!liff.isLoggedIn()) {
+                liff.login();
+                return;
+            }
+            const idToken = liff.getIDToken();
+            if (!idToken) {
+                throw new Error('LINEのIDトークンを取得できませんでした。');
+            }
+
+            let friendshipChecked = true;
+            if (friendshipCheckEnabled) {
+                const friendship = await liff.getFriendship();
+                friendshipChecked = friendship.friendFlag;
+            }
+
+            const response = await fetch('/auth/line', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                },
+                body: JSON.stringify({ idToken, friendshipChecked })
+            });
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = result.redirectUrl;
+                return;
+            }
+            if (result.redirectUrl) {
+                window.location.href = result.redirectUrl;
+                return;
+            }
+            showError(result.message || '認証に失敗しました。');
+        } catch (error) {
+            console.error(error);
+            showError('LINE認証に失敗しました。時間をおいて再度お試しください。');
+        }
+    };
+
+    authenticate();
+</script>
+</body>
+</html>

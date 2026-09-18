@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未登録ユーザー</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="page auth-page">
+    <div class="card">
+        <h1>会員登録が必要です</h1>
+        <p>サークル会員として登録されていません。</p>
+        <p>管理者へLINEユーザーの登録をご依頼ください。</p>
+        <a class="button" th:href="@{/liff-login}">戻る</a>
+    </div>
+</div>
+</body>
+</html>
