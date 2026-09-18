@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: badminton-circle-booking
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:badminton_circle_booking}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Tokyo
+    username: ${DB_USERNAME:badminton}
+    password: ${DB_PASSWORD:badminton}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Tokyo
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  thymeleaf:
+    cache: false
+server:
+  servlet:
+    session:
+      timeout: 8h
+line:
+  liff-id: ${LINE_LIFF_ID:}
+  channel-id: ${LINE_CHANNEL_ID:}
+  channel-secret: ${LINE_CHANNEL_SECRET:}
+  issuer: ${LINE_ISSUER:https://access.line.me}
+  jwk-set-uri: ${LINE_JWK_SET_URI:https://api.line.me/oauth2/v2.1/certs}
+  friendship-check-enabled: ${LINE_FRIENDSHIP_CHECK_ENABLED:true}
+logging:
+  level:
+    com.badminton: INFO
