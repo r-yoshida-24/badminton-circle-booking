@@ -5,7 +5,7 @@ import com.badminton.security.MemberPrincipal;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.RequestPostProcessor;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 public final class TestPrincipalFactory {
 

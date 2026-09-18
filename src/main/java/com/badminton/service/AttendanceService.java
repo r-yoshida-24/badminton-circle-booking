@@ -11,7 +11,6 @@ import com.badminton.viewmodel.AttendanceCountView;
 import com.badminton.viewmodel.AttendanceEventView;
 import com.badminton.viewmodel.EventParticipantView;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,7 +52,6 @@ public class AttendanceService {
     }
 
     @Transactional
-    @PreAuthorize("isAuthenticated()")
     public void updateMyAttendance(Long eventId, AttendanceStatus status, MemberPrincipal principal) {
         Event event = eventService.getEvent(eventId);
         Member member = memberService.getCurrentMember(principal);
