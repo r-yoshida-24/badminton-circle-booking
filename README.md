@@ -27,7 +27,7 @@ LINE公式アカウントからLIFFアプリを起動し、LINE LoginのID Token
 
 ## 必要な環境
 - JDK 21
-- Maven 3.9+
+- Maven 3.9+（または Maven Wrapper `./mvnw`）
 - Docker / Docker Compose
 - MySQL 8 を利用できる環境
 - LINE Developers アカウント
@@ -120,8 +120,8 @@ VALUES ('Uyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy', '一般会員', 'USER', true, 0, NO
 ## 動作確認方法
 1. `.env` を設定
 2. `docker compose up -d db`
-3. `mvn test`
-4. `mvn spring-boot:run`
+3. `./mvnw test`
+4. `./mvnw spring-boot:run`
 5. 管理者で `/admin/events` からイベントを登録
 6. LINE Developers で設定した LIFF URL を公式LINEから開く
 7. 出欠画面で「参加 / 不参加 / 未定」を更新
