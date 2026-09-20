@@ -17,8 +17,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
-    baseline-version: ${FLYWAY_BASELINE_VERSION:1}
   thymeleaf:
     cache: false
 server:
@@ -35,3 +33,11 @@ line:
 logging:
   level:
     com.badminton: INFO
+---
+spring:
+  config:
+    activate:
+      on-profile: flyway-adopt-existing-schema
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 1

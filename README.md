@@ -145,7 +145,7 @@ Flyway を利用しています。
 - `V2__create_event.sql`
 - `V3__create_attendance.sql`
 
-既存の非空スキーマを取り込む場合だけ `FLYWAY_BASELINE_ON_MIGRATE=true` と `FLYWAY_BASELINE_VERSION=1` を設定してください。これは既存テーブル構造が `V1__create_member.sql` までの状態と一致している場合にだけ安全です。任意の中途半端なDBを修復する用途ではないため、構造が一致しない場合は無理にベースライン化せず、新しいDB/スキーマを用意してマイグレーションを最初から適用してください。
+既存の非空スキーマを取り込む場合だけ Spring profile `flyway-adopt-existing-schema` を有効化してください。このプロファイルは `baseline-on-migrate=true` と `baseline-version=1` を適用するため、既存テーブル構造が `V1__create_member.sql` までの状態と一致している場合にだけ安全です。任意の中途半端なDBを修復する用途ではないため、構造が一致しない場合は無理にベースライン化せず、新しいDB/スキーマを用意してマイグレーションを最初から適用してください。
 
 ## テスト
 以下を自動テストしています。
