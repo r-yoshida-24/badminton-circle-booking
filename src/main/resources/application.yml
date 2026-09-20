@@ -33,3 +33,11 @@ line:
 logging:
   level:
     com.badminton: INFO
+---
+spring:
+  config:
+    activate:
+      on-profile: flyway-adopt-existing-schema
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 1
