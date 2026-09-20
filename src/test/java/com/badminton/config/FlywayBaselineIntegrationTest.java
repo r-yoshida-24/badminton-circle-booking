@@ -5,7 +5,9 @@ import org.flywaydb.core.api.MigrationVersion;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -24,12 +26,15 @@ class FlywayBaselineIntegrationTest {
         Flyway flyway = configuredFlyway(url);
         flyway.migrate();
 
-        try (Connection connection = DriverManager.getConnection(url, "sa", "");
-             Statement statement = connection.createStatement()) {
-            assertThat(tableExists(statement, "members")).isTrue();
-            assertThat(tableExists(statement, "events")).isTrue();
-            assertThat(tableExists(statement, "attendances")).isTrue();
-            assertThat(appliedVersions(statement)).containsExactly("1", "2", "3");
+        try (Connection connection = DriverManager.getConnection(url, "sa", "")) {
+            assertThat(tableExists(connection, "members")).isTrue();
+            assertThat(tableExists(connection, "events")).isTrue();
+            assertThat(tableExists(connection, "attendances")).isTrue();
+            assertThat(versionedHistoryEntries(connection)).containsExactly(
+                    new HistoryEntry("1", "SQL"),
+                    new HistoryEntry("2", "SQL"),
+                    new HistoryEntry("3", "SQL")
+            );
         }
     }
 
@@ -58,14 +63,16 @@ class FlywayBaselineIntegrationTest {
         Flyway flyway = configuredFlyway(url);
         flyway.migrate();
 
-        try (Connection connection = DriverManager.getConnection(url, "sa", "");
-             Statement statement = connection.createStatement()) {
-            assertThat(tableExists(statement, "flyway_schema_history")).isTrue();
-            assertThat(tableExists(statement, "members")).isTrue();
-            assertThat(tableExists(statement, "events")).isTrue();
-            assertThat(tableExists(statement, "attendances")).isTrue();
-            assertThat(appliedVersions(statement)).containsExactly("1", "2", "3");
-            assertThat(historyTypeForVersion(statement, "1")).isEqualTo("BASELINE");
+        try (Connection connection = DriverManager.getConnection(url, "sa", "")) {
+            assertThat(tableExists(connection, "flyway_schema_history")).isTrue();
+            assertThat(tableExists(connection, "members")).isTrue();
+            assertThat(tableExists(connection, "events")).isTrue();
+            assertThat(tableExists(connection, "attendances")).isTrue();
+            assertThat(versionedHistoryEntries(connection)).containsExactly(
+                    new HistoryEntry("1", "BASELINE"),
+                    new HistoryEntry("2", "SQL"),
+                    new HistoryEntry("3", "SQL")
+            );
         }
     }
 
@@ -82,30 +89,25 @@ class FlywayBaselineIntegrationTest {
         return "jdbc:h2:mem:" + name + "-" + UUID.randomUUID() + ";MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE";
     }
 
-    private boolean tableExists(Statement statement, String tableName) throws SQLException {
-        try (ResultSet resultSet = statement.executeQuery(
-                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE LOWER(TABLE_NAME) = '" + tableName + "'")) {
-            resultSet.next();
-            return resultSet.getInt(1) == 1;
+    private boolean tableExists(Connection connection, String tableName) throws SQLException {
+        DatabaseMetaData metaData = connection.getMetaData();
+        try (ResultSet resultSet = metaData.getTables(null, null, tableName, null)) {
+            return resultSet.next();
         }
     }
 
-    private List<String> appliedVersions(Statement statement) throws SQLException {
-        List<String> versions = new ArrayList<>();
-        try (ResultSet resultSet = statement.executeQuery(
-                "SELECT version FROM flyway_schema_history WHERE success = TRUE AND version IS NOT NULL ORDER BY installed_rank")) {
+    private List<HistoryEntry> versionedHistoryEntries(Connection connection) throws SQLException {
+        List<HistoryEntry> entries = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT version, type FROM flyway_schema_history WHERE success = TRUE AND version IS NOT NULL ORDER BY installed_rank");
+             ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
-                versions.add(resultSet.getString(1));
+                entries.add(new HistoryEntry(resultSet.getString("version"), resultSet.getString("type")));
             }
         }
-        return versions;
+        return entries;
     }
 
-    private String historyTypeForVersion(Statement statement, String version) throws SQLException {
-        try (ResultSet resultSet = statement.executeQuery(
-                "SELECT type FROM flyway_schema_history WHERE version = '" + version + "'")) {
-            resultSet.next();
-            return resultSet.getString(1);
-        }
+    private record HistoryEntry(String version, String type) {
     }
 }
