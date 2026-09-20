@@ -3,6 +3,12 @@ package com.badminton.config;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationVersion;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.flyway.FlywayProperties;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Configuration;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -14,6 +20,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -77,12 +84,24 @@ class FlywayBaselineIntegrationTest {
     }
 
     private Flyway configuredFlyway(String url) {
+        FlywayProperties flywayProperties = loadAdoptionFlywayProperties();
         return Flyway.configure()
                 .dataSource(url, "sa", "")
-                .locations("classpath:db/migration")
-                .baselineOnMigrate(true)
-                .baselineVersion(MigrationVersion.fromVersion("1"))
+                .locations(flywayProperties.getLocations().toArray(String[]::new))
+                .baselineOnMigrate(Boolean.TRUE.equals(flywayProperties.isBaselineOnMigrate()))
+                .baselineVersion(MigrationVersion.fromVersion(flywayProperties.getBaselineVersion()))
                 .load();
+    }
+
+    private FlywayProperties loadAdoptionFlywayProperties() {
+        String applicationConfigLocation = "file:" + Path.of("src/main/resources/application.yml").toAbsolutePath();
+        try (ConfigurableApplicationContext context = new SpringApplicationBuilder(FlywayPropertiesTestConfig.class)
+                .profiles("flyway-adopt-existing-schema")
+                .properties("spring.config.location=" + applicationConfigLocation)
+                .web(WebApplicationType.NONE)
+                .run()) {
+            return context.getBean(FlywayProperties.class);
+        }
     }
 
     private String jdbcUrl(String name) {
@@ -109,5 +128,10 @@ class FlywayBaselineIntegrationTest {
     }
 
     private record HistoryEntry(String version, String type) {
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @EnableConfigurationProperties(FlywayProperties.class)
+    static class FlywayPropertiesTestConfig {
     }
 }
