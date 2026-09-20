@@ -17,10 +17,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
-import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -94,14 +95,28 @@ class FlywayBaselineIntegrationTest {
     }
 
     private FlywayProperties loadAdoptionFlywayProperties() {
-        String applicationConfigLocation = "file:" + Path.of("src/main/resources/application.yml").toAbsolutePath();
         try (ConfigurableApplicationContext context = new SpringApplicationBuilder(FlywayPropertiesTestConfig.class)
                 .profiles("flyway-adopt-existing-schema")
-                .properties("spring.config.location=" + applicationConfigLocation)
+                .properties("spring.config.location=" + mainApplicationConfigLocation())
                 .web(WebApplicationType.NONE)
                 .run()) {
             return context.getBean(FlywayProperties.class);
         }
+    }
+
+    private String mainApplicationConfigLocation() {
+        try {
+            Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("application.yml");
+            while (resources.hasMoreElements()) {
+                URL resource = resources.nextElement();
+                if (!resource.toString().contains("/test-classes/")) {
+                    return resource.toString();
+                }
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to locate main application.yml on the classpath", e);
+        }
+        throw new IllegalStateException("Main application.yml was not found on the classpath");
     }
 
     private String jdbcUrl(String name) {
