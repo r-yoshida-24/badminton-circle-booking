@@ -81,26 +81,61 @@ LINE公式アカウントからLIFFアプリを起動し、LINE LoginのID Token
 | `LINE_CHANNEL_SECRET` | LINE Login チャネルシークレット |
 | `LINE_FRIENDSHIP_CHECK_ENABLED` | Friendship API チェック有無 |
 
-## MySQL起動方法
+## 環境変数ファイルの準備
+どちらの起動方法でも、まず `.env` を用意してください。
+
 ```bash
 cp .env.example .env
-# .env を編集
-
-docker compose up -d db
+# .env を編集（DBパスワードやLINE関連の値を設定）
 ```
 
-## Spring Boot起動方法
+## Docker Compose起動方法（DBとアプリを一括起動）
+MySQLコンテナの起動から Spring Boot アプリの起動までを一度に行う場合は、リポジトリのルートで以下を実行してください。
+
 ```bash
+docker compose up --build
+```
+
+- `db` サービスは `mysqladmin ping` によるヘルスチェックに成功するまで起動中とみなされ、`app` サービスは `depends_on` の `condition: service_healthy` により **db が healthy になってから起動を開始**します。
+- コンテナ内の Spring Boot アプリは `DB_HOST=db` を使用し、Compose が作成する内部ネットワーク上のサービス名 `db` で MySQL に接続します（`localhost` ではありません）。
+- 初回はイメージのビルドが走るため起動まで時間がかかります。
+
+バックグラウンドで起動する場合は次のようにします。
+
+```bash
+docker compose up -d --build
+```
+
+アプリのログを確認する場合:
+
+```bash
+docker compose logs -f app
+```
+
+停止する場合:
+
+```bash
+docker compose down
+```
+
+DBのデータ（ボリューム）ごと削除したい場合は以下を実行してください。**MySQLのデータが完全に削除されるため注意してください。**
+
+```bash
+docker compose down -v
+```
+
+## ローカルでDBだけ起動してアプリをMavenで起動する方法
+Compose でアプリまで一括起動せず、DBだけコンテナで起動してアプリをローカルの Maven（ホットリロードやデバッグがしやすい）で動かす場合は以下のようにします。
+
+```bash
+docker compose up -d db
 export $(grep -v '^#' .env | xargs)
 ./mvnw spring-boot:run
 # または
 mvn spring-boot:run
 ```
 
-## Docker Compose起動方法
-```bash
-docker compose up --build
-```
+この方法では、アプリはコンテナ内ではなくホストマシン上で動作するため、`application.yml` のデフォルト値どおり `DB_HOST` は `localhost`（未設定時のデフォルト）として MySQL に接続します。一方、`docker compose up --build` でアプリもコンテナ化して起動する場合は、`docker-compose.yml` の `app` サービスに設定された環境変数 `DB_HOST=db` が使われ、Compose サービス名 `db` で接続します。
 
 ## 初期ADMINユーザーの登録方法
 会員は自動作成されません。MySQLへ明示的に登録してください。
