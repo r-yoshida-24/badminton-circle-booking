@@ -1,7 +1,7 @@
 package com.badminton.form;
 
 import com.badminton.entity.Event;
-import jakarta.validation.constraints.AssertTrue;
+import com.badminton.validation.ValidTimeRange;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -13,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+@ValidTimeRange
 public class EventForm {
 
     @NotNull(message = "開催日を入力してください。")
@@ -39,11 +40,6 @@ public class EventForm {
 
     @Size(max = 1000, message = "備考は1000文字以内で入力してください。")
     private String description;
-
-    @AssertTrue(message = "開始時間は終了時間より前にしてください。")
-    public boolean isTimeRangeValid() {
-        return startTime == null || endTime == null || startTime.isBefore(endTime);
-    }
 
     public static EventForm from(Event event) {
         EventForm form = new EventForm();
