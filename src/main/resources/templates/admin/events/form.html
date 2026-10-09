@@ -44,7 +44,7 @@
                 <textarea rows="4" th:field="*{description}"></textarea>
                 <span class="field-error" th:errors="*{description}"></span>
             </label>
-            <span class="field-error full-width" th:errors="*{timeRangeValid}"></span>
+            <span class="field-error full-width" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></span>
             <div class="full-width form-actions">
                 <button class="button" type="submit">保存</button>
             </div>
