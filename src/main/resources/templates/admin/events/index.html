@@ -23,7 +23,8 @@
     <p th:if="${successMessage}" class="message success" th:text="${successMessage}"></p>
 
     <section class="card">
-        <table class="table">
+        <p th:if="${#lists.isEmpty(events)}">イベントがありません</p>
+        <table class="table" th:unless="${#lists.isEmpty(events)}">
             <thead>
             <tr>
                 <th>開催日</th>
